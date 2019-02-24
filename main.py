@@ -4,61 +4,57 @@ import cv2
 
 pupils = []
 iris = []
+images = []
 
-class Pupil:
-
-    center_x = ''
-    center_y = ''
-    radius = ''
-
-    def __init__(self,center_x,center_y,radius):
-        self.center_x = center_x
-        self.center_y = center_y
-        self.radius = radius
 
 def convert_to_gray_scale(img):
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
 
 def load_image(path):
     img = cv2.imread(path)
     if img is not None:
         return img
-    print()
 
 
-def detect_pupil(img):
-    _, thresh = cv2.threshold(img, 100, 255, cv2.THRESH_BINARY)
-    _, t = cv2.threshold(img, 195, 255, cv2.THRESH_BINARY)
-    contours, _, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    c = cv2.HoughCircles(contours, cv2.HOUGH_GRADIENT, 2, img.shape[0] / 2)
-    for l in c:
-        for circle in l:
-            center = (circle[0], circle[1])
-            radius = circle[2]
-            cv2.circle(img, center, radius, (0, 0, 0), thickness=-1)
-            pupil = Pupil(center[0],center[1], center[2])
-            pupils.append(pupil)
+def detect_pupil(image):
+    image_copy = image.copy()
+    # hough = cv2.HoughCircles(image, cv2.HOUGH_GRADIENT, 1.3, 800)
+    hough = cv2.HoughCircles(image, cv2.HOUGH_GRADIENT, 50, 100, 50, 300)
+    if hough is not None:
+        hough = np.round(hough[0, :]).astype("int")
+        for (x, y, raggio) in hough:
+            cv2.circle(image_copy, (x, y), raggio, (255, 0, 0), 4)
+        cv2.imshow("Image test", np.hstack([image, image_copy]))
+        cv2.waitKey()
 
-
-def detect_iris(img):
-    _, t = cv2.threshold(img, 195, 255, cv2.THRESH_BINARY)
-    countours, _, _ = cv2.findContours(t, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    c = cv2.HoughCircles(countours, cv2.HOUGH_GRADIENT, 2, )
 
 def load_all_images():
-    files = os.listdir('iris/001/1/')
-    path = 'iris/001/1/001_1_2.bmp'
-    img = load_image(path)
-    img = convert_to_gray_scale(img)
-    detect_pupil(img)
-    print(img)
-    print(files)
+    main_directory = 'iris'
+    directories = os.listdir(main_directory)
+    for directory in directories:
+        if os.path.isdir(main_directory + '/' + directory):
+            print(main_directory, '/', directory)
+            sub_dirs = os.listdir(main_directory + '/' + directory)
+            for sub_dir in sub_dirs:
+                files = os.listdir(main_directory + '/' + directory + '/' + sub_dir)
+                for file in files:
+                    if 'bmp' in file:
+                        img = load_image(main_directory + '/' + directory + '/' + sub_dir + '/' + file)
+                        img = convert_to_gray_scale(img)
+                        images.append(img)
+
+
+def detect_all_pupils():
+    for image in images:
+        detect_pupil(image)
 
 
 def main():
     load_all_images()
-    print()
+    print(len(images))
+    detect_all_pupils()
+    quit()
 
 
 if __name__ == '__main__':
