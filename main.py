@@ -64,7 +64,8 @@ def show(image_1, image_2, title):
 
 
 def save(image, title):
-    cv2.imwrite('new/'+str(randint(0,100))+'.jpg', image)
+    cv2.imwrite('new/' + str(randint(0, 100)) + '.jpg', image)
+
 
 def get_common_value_from_list(list_of_values):
     average = np.average(list_of_values)
